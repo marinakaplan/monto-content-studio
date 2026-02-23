@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 16px;
+    background: #fff;
+    color: #1f2128;
+  }
+  .logo { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .logo-icon {
+    width: 28px; height: 28px; background: #7B59FF; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px;
+  }
+  .logo-text { font-size: 15px; font-weight: 700; color: #1f2128; }
+  .logo-sub { font-size: 11px; color: #545b6d; font-weight: 400; }
+
+  .status-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; border-radius: 8px; font-size: 12px; line-height: 1.4;
+    margin-bottom: 12px;
+  }
+  .status-bar.watching { background: #EFEBFF; color: #7B59FF; }
+  .status-bar.creating { background: #FFF8E1; color: #D48806; }
+  .status-bar.success { background: #E6F4EA; color: #007737; }
+  .status-bar.error { background: #FFEBEE; color: #DF1C41; }
+  .status-bar.off { background: #f8f9fb; color: #71757e; }
+
+  .pulse {
+    width: 8px; height: 8px; border-radius: 50%; background: currentColor;
+    flex-shrink: 0;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .log { margin-top: 8px; max-height: 200px; overflow-y: auto; }
+  .log-item {
+    padding: 6px 10px; font-size: 11px; color: #545b6d;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .log-item.created { color: #007737; }
+
+  label { display: block; font-size: 12px; font-weight: 600; color: #545b6d; margin-bottom: 6px; }
+  input {
+    width: 100%; padding: 8px 10px; border: 1px solid #e6e7eb; border-radius: 8px;
+    font-size: 12px; outline: none; transition: border-color 0.15s; margin-bottom: 12px;
+  }
+  input:focus { border-color: #7B59FF; box-shadow: 0 0 0 3px rgba(123,89,255,0.12); }
+
+  button {
+    width: 100%; padding: 10px; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-primary { background: #7B59FF; color: white; }
+  .btn-primary:hover { background: #6344E5; }
+  .btn-stop { background: #FFEBEE; color: #DF1C41; margin-top: 8px; }
+  .btn-stop:hover { background: #fdd; }
+
+  .help {
+    margin-top: 16px; padding-top: 12px; border-top: 1px solid #e6e7eb;
+    font-size: 11px; color: #71757e; line-height: 1.5;
+  }
+  .help strong { color: #545b6d; }
+</style>
+</head>
+<body>
+  <div class="logo">
+    <div class="logo-icon">M</div>
+    <div>
+      <div class="logo-text">Monto Studio</div>
+      <div class="logo-sub">Auto Design Handoff</div>
+    </div>
+  </div>
+
+  <label>API Base URL</label>
+  <input type="text" id="apiBase" value="https://monto-content-studio.vercel.app" />
+
+  <div id="statusBar" class="status-bar off">
+    <span>Click Start to begin watching for new assets</span>
+  </div>
+
+  <button class="btn-primary" id="startBtn" onclick="startPolling()">Start Watching</button>
+  <button class="btn-stop" id="stopBtn" style="display:none" onclick="stopPolling()">Stop Watching</button>
+
+  <div class="log" id="log"></div>
+
+  <div class="help">
+    <strong>How it works:</strong><br>
+    1. Click "Start Watching" and keep this plugin open<br>
+    2. Marketing clicks "Push to Figma" in Monto Studio<br>
+    3. Frames are created here automatically — no copy-paste needed!
+  </div>
+
+  <script>
+    let polling = false;
+    let pollTimer = null;
+    let processing = false;
+
+    function logMsg(msg, type) {
+      const el = document.getElementById("log");
+      const div = document.createElement("div");
+      div.className = "log-item" + (type ? " " + type : "");
+      div.textContent = new Date().toLocaleTimeString() + " — " + msg;
+      el.prepend(div);
+      while (el.children.length > 50) el.removeChild(el.lastChild);
+    }
+
+    function setStatus(msg, type) {
+      const bar = document.getElementById("statusBar");
+      bar.className = "status-bar " + type;
+      if (type === "watching") {
+        bar.innerHTML = '<div class="pulse"></div><span>' + msg + '</span>';
+      } else {
+        bar.innerHTML = '<span>' + msg + '</span>';
+      }
+    }
+
+    function startPolling() {
+      polling = true;
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("stopBtn").style.display = "block";
+      setStatus("Watching for new assets...", "watching");
+      logMsg("Started watching");
+      poll();
+    }
+
+    function stopPolling() {
+      polling = false;
+      if (pollTimer) clearTimeout(pollTimer);
+      document.getElementById("startBtn").style.display = "block";
+      document.getElementById("stopBtn").style.display = "none";
+      setStatus("Stopped", "off");
+      logMsg("Stopped watching");
+    }
+
+    async function poll() {
+      if (!polling || processing) {
+        if (polling) pollTimer = setTimeout(poll, 5000);
+        return;
+      }
+
+      const apiBase = document.getElementById("apiBase").value.trim().replace(/\/$/, "");
+
+      try {
+        const res = await fetch(apiBase + "/api/plugin/poll");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        if (data.pending && data.batches && data.batches.length > 0) {
+          processing = true;
+          setStatus("New assets found! Creating frames...", "creating");
+
+          for (const batch of data.batches) {
+            logMsg("Processing: " + batch.brief.campaign_name + " (" + batch.assets.length + " assets)");
+
+            // Download images
+            const images = [];
+            for (const asset of batch.assets) {
+              if (asset.illustration_url && !asset.illustration_url.startsWith("data:")) {
+                try {
+                  const imgRes = await fetch(asset.illustration_url);
+                  const buf = await imgRes.arrayBuffer();
+                  images.push(Array.from(new Uint8Array(buf)));
+                } catch { images.push([]); }
+              } else if (asset.illustration_url && asset.illustration_url.startsWith("data:")) {
+                try {
+                  const base64 = asset.illustration_url.split(",")[1];
+                  const binary = atob(base64);
+                  const bytes = new Uint8Array(binary.length);
+                  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                  images.push(Array.from(bytes));
+                } catch { images.push([]); }
+              } else {
+                images.push([]);
+              }
+            }
+
+            parent.postMessage({
+              pluginMessage: {
+                type: "create-frames",
+                data: { brief: batch.brief, assets: batch.assets, constants: data.constants },
+                images: images,
+                assetIds: batch.assets.map(function(a) { return a.id; }),
+                apiBase: apiBase,
+              }
+            }, "*");
+          }
+        }
+      } catch (err) {
+        logMsg("Poll error: " + err.message);
+      }
+
+      if (polling) {
+        pollTimer = setTimeout(poll, 5000);
+      }
+    }
+
+    window.onmessage = function(event) {
+      var msg = event.data.pluginMessage;
+      if (!msg) return;
+      if (msg.type === "done") {
+        setStatus("Created " + msg.count + " frame(s)!", "success");
+        logMsg("Created " + msg.count + " handoff frame(s)", "created");
+
+        if (msg.assetIds && msg.apiBase) {
+          fetch(msg.apiBase + "/api/plugin/done", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ asset_ids: msg.assetIds }),
+          }).catch(function() {});
+        }
+
+        processing = false;
+        setTimeout(function() {
+          if (polling) setStatus("Watching for new assets...", "watching");
+        }, 3000);
+      } else if (msg.type === "error") {
+        setStatus("Error: " + msg.message, "error");
+        logMsg("Error: " + msg.message);
+        processing = false;
+      }
+    };
+  </script>
+</body>
+</html>

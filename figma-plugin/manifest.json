@@ -1,0 +1,15 @@
+{
+  "name": "Monto Studio",
+  "id": "0000000000000000",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": [
+      "https://monto-content-studio.vercel.app",
+      "http://localhost"
+    ],
+    "reasoning": "Fetch approved campaign assets and illustrations from Monto Content Studio API"
+  }
+}

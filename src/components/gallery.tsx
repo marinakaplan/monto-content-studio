@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Loader2, CheckCircle, AlertCircle, Calendar, PenTool } from "lucide-react";
+import { Sparkles, Loader2, CheckCircle, AlertCircle, Calendar, PenTool, Copy, Check } from "lucide-react";
 import { Btn } from "./ui/button";
 import { AssetCard, type AssetData } from "./asset-card";
 
@@ -13,7 +13,7 @@ type GalleryProps = {
   onGenerateMore?: () => void;
   generating?: boolean;
   pushingToFigma?: boolean;
-  figmaPushResult?: { success: boolean; message: string } | null;
+  figmaPushResult?: { success: boolean; message: string; handoffUrl?: string } | null;
   briefType?: "ai" | "manual";
   deadline?: string | null;
   designerInstructions?: string | null;
@@ -22,6 +22,7 @@ type GalleryProps = {
 
 export function Gallery({ assets, onAction, campaignName, onFigmaPush, onGenerateMore, generating, pushingToFigma, figmaPushResult, briefType, deadline, designerInstructions, overlayTitle }: GalleryProps) {
   const [filter, setFilter] = useState("all");
+  const [copied, setCopied] = useState(false);
   const filtered = filter === "all" ? assets : assets.filter((a) => a.status === filter);
   const count = (s: string) => (s === "all" ? assets.length : assets.filter((a) => a.status === s).length);
   const approvedCount = count("approved");
@@ -143,13 +144,37 @@ export function Gallery({ assets, onAction, campaignName, onFigmaPush, onGenerat
 
       {/* Figma push result toast */}
       {figmaPushResult && (
-        <div className={`mt-4 p-3 rounded-lg flex items-center gap-2 text-sm font-medium ${
+        <div className={`mt-4 p-4 rounded-lg text-sm font-medium ${
           figmaPushResult.success
             ? "bg-[#E6F4EA] text-[#007737] border border-[#00773720]"
             : "bg-[#FFEBEE] text-[#DF1C41] border border-[#DF1C4120]"
         }`}>
-          {figmaPushResult.success ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
-          {figmaPushResult.message}
+          <div className="flex items-center gap-2">
+            {figmaPushResult.success ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
+            {figmaPushResult.message}
+          </div>
+          {figmaPushResult.success && figmaPushResult.handoffUrl && (
+            <div className="mt-3 flex items-center gap-2">
+              <a
+                href={figmaPushResult.handoffUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-[#7B59FF] bg-white border border-[#e6e7eb] rounded-lg hover:bg-[#f8f9fb] cursor-pointer transition-colors"
+              >
+                View Handoff Page
+              </a>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(figmaPushResult.handoffUrl!);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="inline-flex items-center gap-1 px-2 py-1.5 text-[12px] font-medium text-[#545b6d] bg-white border border-[#e6e7eb] rounded-lg hover:bg-[#f8f9fb] cursor-pointer transition-colors"
+              >
+                {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy Link</>}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -164,7 +189,7 @@ export function Gallery({ assets, onAction, campaignName, onFigmaPush, onGenerat
               <div className="text-[15px] font-semibold text-[#7B59FF]">
                 {approvedCount} asset{approvedCount > 1 ? "s" : ""} ready for Figma
               </div>
-              <div className="text-[13px] text-[#545b6d]">Push as editable frames via Figma MCP server</div>
+              <div className="text-[13px] text-[#545b6d]">Post handoff comment with illustrations & briefs to Figma</div>
             </div>
           </div>
           <Btn variant="primary" onClick={onFigmaPush} disabled={pushingToFigma}>

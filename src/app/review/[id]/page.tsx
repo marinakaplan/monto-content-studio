@@ -23,7 +23,7 @@ export default function ReviewPage() {
   const [showLogs, setShowLogs] = useState(false);
   const [generatingMore, setGeneratingMore] = useState(false);
   const [pushingToFigma, setPushingToFigma] = useState(false);
-  const [figmaPushResult, setFigmaPushResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [figmaPushResult, setFigmaPushResult] = useState<{ success: boolean; message: string; handoffUrl?: string } | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -131,7 +131,8 @@ export default function ReviewPage() {
       if (res.ok) {
         setFigmaPushResult({
           success: true,
-          message: `Successfully pushed ${data.pushed} asset${data.pushed > 1 ? "s" : ""} to Figma.`,
+          message: `Pushed ${data.pushed} asset${data.pushed > 1 ? "s" : ""} to Figma! Designers will see a comment with the handoff link.`,
+          handoffUrl: data.handoffUrl,
         });
       } else {
         setFigmaPushResult({

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
-import { pushToFigma } from "@/lib/figma";
+import { postHandoffComment } from "@/lib/figma";
 
 export async function POST(request: Request) {
   const { asset_ids } = await request.json();
@@ -16,8 +16,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No approved assets found" }, { status: 400 });
   }
 
-  // Fetch the brief for these assets (all assets share the same brief_id)
   const briefId = assets[0].brief_id;
+
+  // Fetch brief
   const { data: brief, error: briefError } = await supabase
     .from("briefs")
     .select("*")
@@ -28,28 +29,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Brief not found" }, { status: 404 });
   }
 
-  // Fetch linked event if exists
-  let event = null;
-  if (brief.event_id) {
-    const { data: eventData } = await supabase
-      .from("events")
-      .select("*")
-      .eq("id", brief.event_id)
-      .single();
-    event = eventData;
-  }
+  // Build the handoff URL
+  const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.NEXT_PUBLIC_SITE_URL || "https://monto-content-studio.vercel.app";
+  const handoffUrl = `${baseUrl}/handoff/${briefId}`;
 
   try {
-    const results = await pushToFigma(assets, brief, event);
+    // Post a comment to Figma with the handoff link
+    const { commentId } = await postHandoffComment(assets, brief, handoffUrl);
 
-    for (let i = 0; i < assets.length; i++) {
+    // Mark assets as pushed
+    for (const asset of assets) {
       await supabase
         .from("assets")
-        .update({ figma_frame_id: results[i]?.id || null })
-        .eq("id", assets[i].id);
+        .update({ figma_frame_id: commentId })
+        .eq("id", asset.id);
     }
 
-    return NextResponse.json({ pushed: results.length, frames: results });
+    return NextResponse.json({
+      pushed: assets.length,
+      briefId,
+      handoffUrl,
+      commentId,
+    });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Figma push failed" },
