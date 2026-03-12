@@ -259,6 +259,9 @@ export function Dashboard() {
                       {rec.urgency}
                     </span>
                   </div>
+                  {rec.event_name && rec.event_name !== "general" && (
+                    <p className="text-[11px] text-[#7B59FF] font-medium mb-1">Tied to: {rec.event_name}</p>
+                  )}
                   <p className="text-[12px] text-[#545b6d] leading-snug mb-2">{rec.key_message}</p>
                   <p className="text-[11px] text-[#a1a5ae] italic mb-3">{rec.rationale}</p>
                   <div className="flex items-center gap-1.5 flex-wrap mb-2">

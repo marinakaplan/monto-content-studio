@@ -77,6 +77,7 @@ export function DashboardEvents() {
       context: `Tie-in with upcoming event: ${event.name} (${dateStr}). ${event.description || ""}`.trim(),
       pillar: pillarMap[event.category] || "",
       deadline: event.date,
+      eventId: event.id,
     };
     sessionStorage.setItem("eventPrefill", JSON.stringify(prefill));
     router.push("/brief");

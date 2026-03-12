@@ -10,6 +10,8 @@ import {
   Loader2,
   Calendar as CalendarIcon,
   X,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Btn } from "@/components/ui/button";
@@ -39,6 +41,7 @@ export default function CalendarPage() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   const loadEvents = useCallback(() => {
     fetch("/api/events?upcoming=false")
@@ -94,6 +97,43 @@ export default function CalendarPage() {
       setEvents((prev) => [...prev, created].sort((a, b) => a.date.localeCompare(b.date)));
       setNewEvent({ name: "", date: "", category: "conference", description: "" });
       setShowAddModal(false);
+    }
+  }
+
+  async function handleEditEvent() {
+    if (!editingEvent || !editingEvent.name || !editingEvent.date) return;
+    try {
+      const res = await fetch(`/api/events/${editingEvent.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editingEvent.name,
+          date: editingEvent.date,
+          category: editingEvent.category,
+          description: editingEvent.description,
+        }),
+      });
+      const updated = await res.json();
+      if (updated.id) {
+        setEvents((prev) =>
+          prev.map((e) => (e.id === updated.id ? updated : e)).sort((a, b) => a.date.localeCompare(b.date))
+        );
+        setEditingEvent(null);
+      }
+    } catch (err) {
+      console.error("Edit error:", err);
+    }
+  }
+
+  async function handleDeleteEvent(eventId: string) {
+    try {
+      const res = await fetch(`/api/events/${eventId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.ok) {
+        setEvents((prev) => prev.filter((e) => e.id !== eventId));
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
     }
   }
 
@@ -322,7 +362,19 @@ export default function CalendarPage() {
                             >
                               <CatIcon size={13} style={{ color: cat?.color }} />
                             </div>
-                            <span className="text-[13px] font-semibold text-[#1f2128]">{event.name}</span>
+                            <span className="text-[13px] font-semibold text-[#1f2128] flex-1">{event.name}</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingEvent(event); }}
+                              className="w-6 h-6 rounded flex items-center justify-center text-[#a1a5ae] hover:text-[#545b6d] hover:bg-[#f3f4f6] cursor-pointer transition-colors"
+                            >
+                              <Pencil size={11} />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDeleteEvent(event.id); }}
+                              className="w-6 h-6 rounded flex items-center justify-center text-[#a1a5ae] hover:text-[#e5534b] hover:bg-[#fef1f0] cursor-pointer transition-colors"
+                            >
+                              <Trash2 size={11} />
+                            </button>
                           </div>
                           {event.description && (
                             <p className="text-[12px] text-[#545b6d] leading-snug mb-2">{event.description}</p>
@@ -380,6 +432,9 @@ export default function CalendarPage() {
                         {rec.urgency}
                       </span>
                     </div>
+                    {rec.event_name && rec.event_name !== "general" && (
+                      <p className="text-[10px] text-[#7B59FF] font-medium mb-1">Tied to: {rec.event_name}</p>
+                    )}
                     <p className="text-[11px] text-[#545b6d] leading-snug mb-1.5">{rec.key_message}</p>
                     <p className="text-[10px] text-[#a1a5ae] italic mb-2">{rec.rationale}</p>
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -463,6 +518,66 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Event Modal */}
+      {editingEvent && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl w-full max-w-md mx-4 overflow-hidden shadow-xl">
+            <div className="px-5 py-4 border-b border-[#e6e7eb] flex items-center justify-between">
+              <h3 className="text-[15px] font-semibold text-[#1f2128]">Edit Event</h3>
+              <button onClick={() => setEditingEvent(null)} className="text-[#a1a5ae] hover:text-[#545b6d] cursor-pointer">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <div>
+                <label className="block text-[12px] font-medium text-[#545b6d] mb-1">Event Name</label>
+                <input
+                  value={editingEvent.name}
+                  onChange={(e) => setEditingEvent((p) => p ? { ...p, name: e.target.value } : p)}
+                  className="w-full h-10 px-3 rounded-lg text-[13px] text-[#1f2128] outline-none transition-all shadow-[inset_0_0_0_1px_#e6e7eb] focus:shadow-[inset_0_0_0_1.5px_#7B59FF,0_0_0_3px_rgba(123,89,255,0.12)]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[12px] font-medium text-[#545b6d] mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={editingEvent.date}
+                    onChange={(e) => setEditingEvent((p) => p ? { ...p, date: e.target.value } : p)}
+                    className="w-full h-10 px-3 rounded-lg text-[13px] text-[#1f2128] outline-none transition-all shadow-[inset_0_0_0_1px_#e6e7eb] focus:shadow-[inset_0_0_0_1.5px_#7B59FF,0_0_0_3px_rgba(123,89,255,0.12)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-[#545b6d] mb-1">Category</label>
+                  <select
+                    value={editingEvent.category}
+                    onChange={(e) => setEditingEvent((p) => p ? { ...p, category: e.target.value as Event["category"] } : p)}
+                    className="w-full h-10 px-3 rounded-lg text-[13px] text-[#1f2128] outline-none transition-all shadow-[inset_0_0_0_1px_#e6e7eb] focus:shadow-[inset_0_0_0_1.5px_#7B59FF,0_0_0_3px_rgba(123,89,255,0.12)]"
+                  >
+                    {EVENT_CATEGORIES.map((c) => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium text-[#545b6d] mb-1">Description</label>
+                <textarea
+                  value={editingEvent.description || ""}
+                  onChange={(e) => setEditingEvent((p) => p ? { ...p, description: e.target.value } : p)}
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg text-[13px] text-[#1f2128] outline-none transition-all resize-none shadow-[inset_0_0_0_1px_#e6e7eb] focus:shadow-[inset_0_0_0_1.5px_#7B59FF,0_0_0_3px_rgba(123,89,255,0.12)]"
+                />
+              </div>
+            </div>
+            <div className="px-5 py-4 border-t border-[#e6e7eb] flex justify-end gap-2">
+              <Btn variant="neutral" onClick={() => setEditingEvent(null)}>Cancel</Btn>
+              <Btn variant="primary" onClick={handleEditEvent}>Save Changes</Btn>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Event Modal */}
       {showAddModal && (

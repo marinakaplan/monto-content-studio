@@ -39,8 +39,8 @@ export async function POST() {
     const coveredEventIds = new Set((briefs || []).filter((b: { event_id: string | null }) => b.event_id).map((b: { event_id: string | null }) => b.event_id));
 
     const eventsText = (events || [])
-      .map((e: { name: string; date: string; category: string; description: string | null; relevance_tags: string[] }) =>
-        `- ${e.name} (${e.date}, ${e.category})${e.description ? `: ${e.description}` : ""}${coveredEventIds.has(e.name) ? " [ALREADY HAS CAMPAIGN]" : ""}`
+      .map((e: { id: string; name: string; date: string; category: string; description: string | null; relevance_tags: string[] }) =>
+        `- ${e.name} (${e.date}, ${e.category})${e.description ? `: ${e.description}` : ""}${coveredEventIds.has(e.id) ? " [ALREADY HAS CAMPAIGN]" : ""}`
       )
       .join("\n");
 
