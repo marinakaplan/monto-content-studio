@@ -131,3 +131,28 @@ export const STATUS_CONFIG = {
   review: { label: "In Review", color: DS.warning, bg: DS.warningBg },
   complete: { label: "Complete", color: DS.success, bg: DS.successBg },
 } as const;
+
+export const ROLES = [
+  { id: "admin", label: "Admin", description: "Full access to all features" },
+  { id: "marketing", label: "Marketing", description: "Create campaigns, approve content" },
+  { id: "creator", label: "Creator", description: "Personal publishing, claim advocacy content" },
+] as const;
+
+export const VOICE_TONE_OPTIONS = [
+  "direct", "casual", "technical", "executive", "data-driven",
+  "storytelling", "conversational", "authoritative", "empathetic",
+  "witty", "concise", "educational", "inspirational", "analytical",
+] as const;
+
+export const ADVOCACY_STATUS_CONFIG = {
+  available: { label: "Available", color: DS.info, bg: DS.infoBg },
+  claimed: { label: "Claimed", color: DS.warning, bg: DS.warningBg },
+  rewritten: { label: "Rewritten", color: DS.processing, bg: DS.processingBg },
+  published: { label: "Published", color: DS.success, bg: DS.successBg },
+} as const;
+
+export const APPROVAL_STATUS_CONFIG = {
+  pending: { label: "Pending", color: DS.warning, bg: DS.warningBg },
+  approved: { label: "Approved", color: DS.success, bg: DS.successBg },
+  rejected: { label: "Rejected", color: DS.error, bg: DS.errorBg },
+} as const;

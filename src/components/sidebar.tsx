@@ -10,6 +10,9 @@ import {
   Settings,
   ChevronsLeft,
   ChevronsRight,
+  UserCircle,
+  BookTemplate,
+  FolderSearch,
 } from "lucide-react";
 import { ConnectedAccounts } from "@/components/connected-accounts";
 
@@ -17,6 +20,9 @@ const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/brief", label: "New Campaign", icon: PlusCircle },
+  { href: "/creator", label: "Creator Mode", icon: UserCircle },
+  { href: "/templates", label: "Templates", icon: BookTemplate },
+  { href: "/library", label: "Asset Library", icon: FolderSearch },
 ];
 
 const BOTTOM_ITEMS = [

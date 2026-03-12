@@ -199,6 +199,21 @@ export function AssetCard({ asset, onAction }: AssetCardProps) {
                 >
                   <FigmaIcon size={13} /> Push to Figma
                 </button>
+                <div className="h-px bg-[#e6e7eb] my-1" />
+                {asset.status === "approved" && (
+                  <button
+                    onClick={() => { onAction(asset.id, "add-to-queue"); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-[#545b6d] hover:bg-[#f8f9fb] cursor-pointer transition-colors"
+                  >
+                    <RefreshCw size={13} /> Add to Advocacy Queue
+                  </button>
+                )}
+                <button
+                  onClick={() => { onAction(asset.id, "save-template"); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-[#545b6d] hover:bg-[#f8f9fb] cursor-pointer transition-colors"
+                >
+                  <Copy size={13} /> Save as Template
+                </button>
               </div>
             )}
           </div>

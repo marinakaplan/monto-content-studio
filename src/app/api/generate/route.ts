@@ -71,6 +71,18 @@ export async function POST(request: Request) {
         console.error("Failed to save asset:", assetError);
       } else {
         assets.push(asset);
+        // Create initial version history entry
+        await supabase.from("asset_versions").insert({
+          asset_id: asset.id,
+          version_number: 1,
+          headline: asset.headline,
+          body: asset.body,
+          hashtags: asset.hashtags,
+          illustration_desc: asset.illustration_desc,
+          illustration_url: asset.illustration_url,
+          change_type: "created",
+          change_summary: "Initial generation",
+        });
       }
     }
 
