@@ -74,8 +74,21 @@ ALTER TABLE public.notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.generation_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow all on briefs" ON public.briefs FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on assets" ON public.assets FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on notes" ON public.notes FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on events" ON public.events FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on generation_logs" ON public.generation_logs FOR ALL USING (true) WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'briefs' AND policyname = 'Allow all on briefs') THEN
+    CREATE POLICY "Allow all on briefs" ON public.briefs FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'assets' AND policyname = 'Allow all on assets') THEN
+    CREATE POLICY "Allow all on assets" ON public.assets FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notes' AND policyname = 'Allow all on notes') THEN
+    CREATE POLICY "Allow all on notes" ON public.notes FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'events' AND policyname = 'Allow all on events') THEN
+    CREATE POLICY "Allow all on events" ON public.events FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'generation_logs' AND policyname = 'Allow all on generation_logs') THEN
+    CREATE POLICY "Allow all on generation_logs" ON public.generation_logs FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;
