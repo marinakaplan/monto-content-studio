@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   LayoutDashboard,
   PlusCircle,
+  Calendar,
   Link2,
   Settings,
   ChevronsLeft,
@@ -14,6 +15,7 @@ import { ConnectedAccounts } from "@/components/connected-accounts";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/brief", label: "New Campaign", icon: PlusCircle },
 ];
 

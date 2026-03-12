@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Layers, Clock, Loader2, CheckCircle, Sparkles } from "lucide-react";
+import { Plus, Layers, Clock, Loader2, CheckCircle, Sparkles, ArrowRight, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Btn } from "./ui/button";
 import { CampaignCard } from "./campaign-card";
@@ -9,6 +9,17 @@ import { DashboardEvents } from "./dashboard-events";
 import { DS } from "@/lib/constants";
 import type { Brief } from "@/lib/supabase";
 import type { LucideIcon } from "lucide-react";
+
+type Recommendation = {
+  campaign_name: string;
+  event_name: string;
+  pillar: string;
+  urgency: "high" | "medium" | "low";
+  key_message: string;
+  platforms: string[];
+  rationale: string;
+  icp: string;
+};
 
 type BriefWithCount = Brief & { asset_count: number };
 
@@ -40,6 +51,8 @@ export function Dashboard() {
   const [briefs, setBriefs] = useState<BriefWithCount[]>([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [loadingRecs, setLoadingRecs] = useState(false);
 
   useEffect(() => {
     fetch("/api/briefs")
@@ -182,6 +195,98 @@ export function Dashboard() {
           No {filter} campaigns.
         </div>
       )}
+
+      {/* AI Recommendations Section */}
+      <div className="mt-10 pt-6 border-t border-[#e6e7eb]">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Zap size={16} color={DS.primary} />
+            <h2 className="text-[15px] font-semibold text-[#1f2128]">AI Campaign Ideas</h2>
+          </div>
+          <Btn
+            variant="secondary"
+            size="small"
+            onClick={async () => {
+              setLoadingRecs(true);
+              try {
+                const res = await fetch("/api/ai-recommendations", { method: "POST" });
+                const data = await res.json();
+                if (data.recommendations) setRecommendations(data.recommendations);
+              } catch (err) {
+                console.error(err);
+              }
+              setLoadingRecs(false);
+            }}
+            disabled={loadingRecs}
+          >
+            {loadingRecs ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+            {loadingRecs ? "Analyzing..." : "Get Suggestions"}
+          </Btn>
+        </div>
+
+        {recommendations.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {recommendations.map((rec, i) => {
+              const urgencyColors: Record<string, { color: string; bg: string }> = {
+                high: { color: DS.error, bg: DS.errorBg },
+                medium: { color: DS.warning, bg: DS.warningBg },
+                low: { color: DS.info, bg: DS.infoBg },
+              };
+              const uc = urgencyColors[rec.urgency] || urgencyColors.low;
+
+              return (
+                <div
+                  key={i}
+                  className="bg-white border border-[#e6e7eb] rounded-lg p-4 hover:border-[#c4c9d4] hover:shadow-sm transition-all cursor-pointer group"
+                  onClick={() => {
+                    const prefill = {
+                      campaign: rec.campaign_name,
+                      message: rec.key_message,
+                      context: rec.rationale,
+                      pillar: rec.pillar,
+                      deadline: "",
+                    };
+                    sessionStorage.setItem("eventPrefill", JSON.stringify(prefill));
+                    router.push("/brief");
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[14px] font-semibold text-[#1f2128]">{rec.campaign_name}</span>
+                    <span
+                      className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded shrink-0"
+                      style={{ color: uc.color, background: uc.bg }}
+                    >
+                      {rec.urgency}
+                    </span>
+                  </div>
+                  <p className="text-[12px] text-[#545b6d] leading-snug mb-2">{rec.key_message}</p>
+                  <p className="text-[11px] text-[#a1a5ae] italic mb-3">{rec.rationale}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                    <span className="text-[10px] font-medium text-[#7B59FF] bg-[#EFEBFF] rounded px-1.5 py-0.5">
+                      {rec.pillar}
+                    </span>
+                    {rec.platforms?.slice(0, 2).map((p) => (
+                      <span key={p} className="text-[10px] text-[#71757e] bg-[#f3f4f6] rounded px-1.5 py-0.5">
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] font-medium text-[#7B59FF] opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Sparkles size={10} /> Create this campaign <ArrowRight size={10} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : !loadingRecs ? (
+          <div className="bg-gradient-to-r from-[#EFEBFF] to-[#f8f9fb] rounded-lg p-5 text-center">
+            <Sparkles size={20} color={DS.primary} className="mx-auto mb-2" />
+            <p className="text-[13px] text-[#545b6d]">
+              Click &quot;Get Suggestions&quot; to get AI-powered campaign ideas based on your upcoming events.
+            </p>
+          </div>
+        ) : null}
+      </div>
 
       {/* Events section — secondary, below campaigns */}
       <div className="mt-10 pt-6 border-t border-[#e6e7eb]">
