@@ -156,3 +156,22 @@ export const APPROVAL_STATUS_CONFIG = {
   approved: { label: "Approved", color: DS.success, bg: DS.successBg },
   rejected: { label: "Rejected", color: DS.error, bg: DS.errorBg },
 } as const;
+
+export const LANGUAGES = [
+  { id: "en", label: "English", flag: "\u{1F1FA}\u{1F1F8}" },
+  { id: "de", label: "German", flag: "\u{1F1E9}\u{1F1EA}" },
+  { id: "fr", label: "French", flag: "\u{1F1EB}\u{1F1F7}" },
+  { id: "es", label: "Spanish", flag: "\u{1F1EA}\u{1F1F8}" },
+] as const;
+
+export const PUBLISH_STATUS_CONFIG = {
+  draft: { label: "Draft", color: DS.muted, bg: DS.neutralBg },
+  copied: { label: "Copied", color: DS.warning, bg: DS.warningBg },
+  published: { label: "Published", color: DS.success, bg: DS.successBg },
+} as const;
+
+export const SCHEDULE_STATUS_CONFIG = {
+  scheduled: { label: "Scheduled", color: DS.info, bg: DS.infoBg },
+  published: { label: "Published", color: DS.success, bg: DS.successBg },
+  skipped: { label: "Skipped", color: DS.muted, bg: DS.neutralBg },
+} as const;

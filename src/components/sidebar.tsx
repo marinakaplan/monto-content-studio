@@ -13,6 +13,8 @@ import {
   UserCircle,
   BookTemplate,
   FolderSearch,
+  Send,
+  Swords,
 } from "lucide-react";
 import { ConnectedAccounts } from "@/components/connected-accounts";
 
@@ -23,6 +25,8 @@ const NAV_ITEMS = [
   { href: "/creator", label: "Creator Mode", icon: UserCircle },
   { href: "/templates", label: "Templates", icon: BookTemplate },
   { href: "/library", label: "Asset Library", icon: FolderSearch },
+  { href: "/publish", label: "Publishing", icon: Send },
+  { href: "/competitor", label: "Competitor Intel", icon: Swords },
 ];
 
 const BOTTOM_ITEMS = [

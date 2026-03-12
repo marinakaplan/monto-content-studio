@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   ThumbsUp, ThumbsDown, RefreshCw, MessageCircle, Copy, Download,
   MoreVertical, CheckCircle, Clock, AlertCircle, Image, Sparkles,
+  Repeat2, Languages,
 } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { PILLARS, PLATFORMS, DS } from "@/lib/constants";
@@ -213,6 +214,18 @@ export function AssetCard({ asset, onAction }: AssetCardProps) {
                   className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-[#545b6d] hover:bg-[#f8f9fb] cursor-pointer transition-colors"
                 >
                   <Copy size={13} /> Save as Template
+                </button>
+                <button
+                  onClick={() => { onAction(asset.id, "repurpose"); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-[#545b6d] hover:bg-[#f8f9fb] cursor-pointer transition-colors"
+                >
+                  <Repeat2 size={13} /> Repurpose for All Platforms
+                </button>
+                <button
+                  onClick={() => { onAction(asset.id, "translate"); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-[#545b6d] hover:bg-[#f8f9fb] cursor-pointer transition-colors"
+                >
+                  <Languages size={13} /> Translate
                 </button>
               </div>
             )}

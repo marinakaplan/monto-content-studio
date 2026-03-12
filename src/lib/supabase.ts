@@ -18,6 +18,7 @@ export type Brief = {
   style_refs: string[] | null;
   created_at: string;
   updated_at: string;
+  language: string;
 };
 
 export type Asset = {
@@ -34,6 +35,9 @@ export type Asset = {
   status: "pending" | "approved" | "rejected";
   figma_frame_id: string | null;
   created_at: string;
+  language: string;
+  source_language: string | null;
+  translated_from_asset_id: string | null;
 };
 
 export type Note = {
@@ -174,6 +178,82 @@ export type AssetVersion = {
   change_type: "created" | "edited" | "regenerated" | "rewritten" | "rolled_back";
   change_summary: string | null;
   changed_by: string | null;
+  created_at: string;
+};
+
+export type PublishingFormat = {
+  id: string;
+  asset_id: string;
+  platform: string;
+  formatted_content: string;
+  format_type: "text" | "html" | "markdown";
+  publish_status: "draft" | "copied" | "published";
+  copied_at: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ScheduledItem = {
+  id: string;
+  brief_id: string;
+  asset_id: string | null;
+  platform: string;
+  scheduled_date: string;
+  scheduled_time: string | null;
+  lane_order: number;
+  recurrence_rule: string | null;
+  recurrence_parent_id: string | null;
+  status: "scheduled" | "published" | "skipped";
+  created_at: string;
+  updated_at: string;
+};
+
+export type RepurposedAsset = {
+  id: string;
+  source_asset_id: string;
+  target_asset_id: string;
+  target_platform: string;
+  created_at: string;
+};
+
+export type CampaignScorecard = {
+  id: string;
+  brief_id: string;
+  platform: string | null;
+  impressions: number;
+  clicks: number;
+  engagement: number;
+  shares: number;
+  conversions: number;
+  notes: string | null;
+  ai_insights: string | null;
+  scored_at: string;
+  updated_at: string;
+};
+
+export type ABVariant = {
+  id: string;
+  brief_id: string;
+  asset_id: string;
+  variant_label: string;
+  was_published: boolean;
+  impressions: number;
+  clicks: number;
+  engagement: number;
+  shares: number;
+  ai_learnings: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CompetitorAnalysis = {
+  id: string;
+  competitor_post: string;
+  monto_response: string | null;
+  platform: string | null;
+  analysis_notes: string | null;
+  brief_id: string | null;
   created_at: string;
 };
 
