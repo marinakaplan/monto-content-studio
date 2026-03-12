@@ -86,6 +86,29 @@ export default function ReviewPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note: data }),
       });
+    } else if (action === "edit" && data) {
+      const { headline, body, hashtags } = JSON.parse(data) as {
+        headline: string;
+        body: string;
+        hashtags: string[];
+      };
+      // Optimistic local update
+      setAssets((prev) =>
+        prev.map((a) =>
+          a.id === assetId ? { ...a, headline, body, hashtags } : a
+        )
+      );
+      await fetch(`/api/assets/${assetId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          headline,
+          body,
+          hashtags,
+          change_type: "edited",
+          change_summary: "Inline edit",
+        }),
+      });
     } else if (action === "regenerate") {
       setAssets((prev) =>
         prev.map((a) => (a.id === assetId ? { ...a, status: "pending" } : a))

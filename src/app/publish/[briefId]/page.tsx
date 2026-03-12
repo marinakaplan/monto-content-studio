@@ -268,10 +268,13 @@ export default function PublishingHub() {
                         </div>
                         <PlatformPreview
                           platform={format.platform}
+                          headline={asset?.headline || ""}
+                          body={format.formatted_content}
                           content={format.formatted_content}
                           formatType={format.format_type}
-                          headline={asset?.headline}
                           hashtags={asset?.hashtags}
+                          illustrationUrl={asset?.illustration_url}
+                          illustrationDesc={asset?.illustration_desc}
                         />
                       </div>
                     );

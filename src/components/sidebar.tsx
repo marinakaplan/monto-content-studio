@@ -15,6 +15,8 @@ import {
   FolderSearch,
   Send,
   Swords,
+  Palette,
+  Lightbulb,
 } from "lucide-react";
 import { ConnectedAccounts } from "@/components/connected-accounts";
 
@@ -22,6 +24,8 @@ const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/brief", label: "New Campaign", icon: PlusCircle },
+  { href: "/ideate", label: "Ideate", icon: Lightbulb },
+  { href: "/brand", label: "Brand DNA", icon: Palette },
   { href: "/creator", label: "Creator Mode", icon: UserCircle },
   { href: "/templates", label: "Templates", icon: BookTemplate },
   { href: "/library", label: "Asset Library", icon: FolderSearch },
